@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simple Pong Game</title>
+  <title>PONG</title>
   <style>
     @font-face {
       font-family: 'ArcadeClassic';
@@ -34,6 +34,8 @@
     const paddleWidth = 10;
     const paddleHeight = 100;
     const playerSpeed = 8;
+    let player1Velocity = 0;
+    const friction = 0.8; // Friction for easing paddle to a stop
 
     // Images
     const paddleImg = new Image();
@@ -94,6 +96,23 @@
     let upPressed = false;
     let downPressed = false;
 
+    // Flash the score of the losing player
+    function flashScore(player) {
+      let flashCount = 0;
+      const flashInterval = setInterval(() => {
+        if (player === 'Player 1') {
+          document.querySelector('h1').style.color = flashCount % 2 === 0 ? 'red' : 'white';
+        } else {
+          document.querySelector('h1').style.color = flashCount % 2 === 0 ? 'red' : 'white';
+        }
+        flashCount++;
+        if (flashCount > 6) {
+          clearInterval(flashInterval);
+          document.querySelector('h1').style.color = 'white';
+        }
+      }, 500);
+    }
+
     // Check if all assets are loaded
     function checkAssetsLoaded() {
       assetsLoaded++;
@@ -150,7 +169,13 @@
     function update() {
       // Move player 1 paddle
       if (upPressed && player1Y > 0) {
-        player1Y -= playerSpeed;
+        player1Velocity = -playerSpeed;
+      } else if (downPressed && player1Y < canvas.height - paddleHeight) {
+        player1Velocity = playerSpeed;
+      } else {
+        player1Velocity *= friction;
+      }
+      player1Y += player1Velocity;
       } else if (downPressed && player1Y < canvas.height - paddleHeight) {
         player1Y += playerSpeed;
       }
@@ -191,10 +216,12 @@
       if (ballX < 0) {
         player2Score++;
         loseSound.play(); // AI scores
+        flashScore('Player 1');
         resetBall();
       } else if (ballX > canvas.width) {
         player1Score++;
         winSound.play(); // Player scores
+        flashScore('AI');
         resetBall();
       }
     }
