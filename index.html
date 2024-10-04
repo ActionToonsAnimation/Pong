@@ -67,10 +67,14 @@
     let upPressed = false;
     let downPressed = false;
 
-    // Start the game once all assets are loaded
-    paddleImg.onload = () => {
-      ballImg.onload = () => {
-        gameLoop();
+    // Ensure background image is loaded before starting the game loop
+    const backgroundImg = new Image();
+    backgroundImg.src = 'https://actiontoonsanimation.github.io/Pong/background.png';
+    backgroundImg.onload = () => {
+      paddleImg.onload = () => {
+        ballImg.onload = () => {
+          gameLoop();
+        };
       };
     };
 
@@ -78,12 +82,10 @@
       // Clear the canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Draw the gradient background
-      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-      gradient.addColorStop(0, '#0d0d4d'); // Dark Blue
-      gradient.addColorStop(1, '#660066'); // Dark Purple
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Draw the background
+      const backgroundImg = new Image();
+      backgroundImg.src = 'https://actiontoonsanimation.github.io/Pong/background.png';
+      ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
 
       // Draw player 1 paddle
       ctx.drawImage(paddleImg, 0, player1Y, paddleWidth, paddleHeight);
