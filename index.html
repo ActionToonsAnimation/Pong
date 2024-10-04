@@ -41,7 +41,6 @@
     const backgroundMusic = new Audio('level1music.wav');
     backgroundMusic.volume = 0.5;
     backgroundMusic.loop = true;
-    backgroundMusic.play();
 
     let player1Y = canvas.height / 2 - paddleHeight / 2;
     let player2Y = canvas.height / 2 - paddleHeight / 2;
@@ -118,6 +117,7 @@
       // Ball collision with top and bottom
       if (ballY - ballRadius < 0 || ballY + ballRadius > canvas.height) {
         ballSpeedY = -ballSpeedY;
+        hitSound.play();
       }
 
       // Ball collision with paddles
@@ -150,6 +150,11 @@
       update();
       requestAnimationFrame(gameLoop);
     }
+
+    // Start background music on user interaction
+    canvas.addEventListener('click', () => {
+      backgroundMusic.play();
+    });
 
     // Event listeners for controls
     document.addEventListener('keydown', (e) => {
