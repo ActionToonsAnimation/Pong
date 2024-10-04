@@ -40,17 +40,17 @@
     // Images
     const paddleImg = new Image();
     paddleImg.src = 'https://actiontoonsanimation.github.io/Pong/paddle.png';
-    paddleImg.onload = () => checkAssetsLoaded();
+    paddleImg.onload = () => draw();
     paddleImg.onerror = () => console.error('Paddle image failed to load');
 
     const ballImg = new Image();
     ballImg.src = 'https://actiontoonsanimation.github.io/Pong/ball.png';
-    ballImg.onload = () => checkAssetsLoaded();
+    ballImg.onload = () => draw();
     ballImg.onerror = () => console.error('Ball image failed to load');
 
     const backgroundImg = new Image();
     backgroundImg.src = 'https://actiontoonsanimation.github.io/Pong/background.png';
-    backgroundImg.onload = () => checkAssetsLoaded();
+    backgroundImg.onload = () => draw();
     backgroundImg.onerror = () => console.error('Background image failed to load');
 
     // Sound effects
@@ -111,7 +111,6 @@
         }
       }, 500);
     }
-      }, 500);
     }
       }, 500);
     }
@@ -133,8 +132,9 @@
       if (backgroundImg.complete && backgroundImg.naturalWidth !== 0) {
         ctx.drawImage(backgroundImg, 0, 0);
       } else {
-        ctx.fillStyle = 'black'; // Fallback background color
+        ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
       }
 
       // Draw player 1 paddle
@@ -167,9 +167,9 @@
       ctx.fillStyle = 'white';
       ctx.font = '20px ArcadeClassic, Arial, sans-serif';
       ctx.fillText('Player 1: ' + player1Score, 20, 30);
-      document.getElementById('player1Score').textContent = 'Player 1: ' + player1Score;
+      
       ctx.fillText('AI: ' + player2Score, canvas.width - 100, 30);
-      document.getElementById('player2Score').textContent = 'AI: ' + player2Score;
+      
     }
 
     function update() {
