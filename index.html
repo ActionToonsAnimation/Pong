@@ -33,7 +33,7 @@
     // Paddle properties
     const paddleWidth = 10;
     const paddleHeight = 100;
-    const playerSpeed = 8;
+    const playerSpeed = 6;
     let player1Velocity = 0;
     const friction = 0.8; // Friction for easing paddle to a stop
 
@@ -70,25 +70,20 @@
     const backgroundMusic = new Audio('https://actiontoonsanimation.github.io/Pong/level1music.wav');
     backgroundMusic.volume = 0.5;
     backgroundMusic.loop = true;
-    
     backgroundMusic.onerror = () => console.error('Background music failed to load');
 
-    
     let assetsLoaded = 0;
     const totalAssets = 6; // Number of image and audio assets
 
     let player1Y = canvas.height / 2 - paddleHeight / 2;
     let player2Y = canvas.height / 2 - paddleHeight / 2;
-    let computerSpeed = 2.5;
+    let computerSpeed = 2;
 
     // Ball properties
     let ballX = canvas.width / 2;
     let ballY = canvas.height / 2;
-    const playerSpeed = 6;"  // Reduced player speed for better control
-    }
-  ]
-}
-    let ballSpeedY = 6;
+    let ballSpeedX = 3;
+    let ballSpeedY = 3;
     const ballRadius = 10;
 
     // Scores
@@ -103,11 +98,7 @@
     function flashScore(player) {
       let flashCount = 0;
       const flashInterval = setInterval(() => {
-        if (player === 'Player 1') {
-          document.querySelector('h1').style.color = flashCount % 2 === 0 ? 'red' : 'white';
-        } else {
-          document.querySelector('h1').style.color = flashCount % 2 === 0 ? 'red' : 'white';
-        }
+        document.querySelector('h1').style.color = flashCount % 2 === 0 ? 'red' : 'white';
         flashCount++;
         if (flashCount > 6) {
           clearInterval(flashInterval);
@@ -130,32 +121,32 @@
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       // Draw the background
-      if (backgroundImg.complete) {
-        if (backgroundImg.complete && backgroundImg.naturalWidth !== 0) { ctx.drawImage(backgroundImg, 0, 0); }
+      if (backgroundImg.complete && backgroundImg.naturalWidth !== 0) {
+        ctx.drawImage(backgroundImg, 0, 0);
       } else {
         ctx.fillStyle = 'black'; // Fallback background color
         ctx.fillRect(0, 0, canvas.width, canvas.height);
       }
 
       // Draw player 1 paddle
-      if (paddleImg.complete) {
-        if (paddleImg.complete && paddleImg.naturalWidth !== 0) { ctx.drawImage(paddleImg, 0, player1Y, paddleWidth, paddleHeight); }
+      if (paddleImg.complete && paddleImg.naturalWidth !== 0) {
+        ctx.drawImage(paddleImg, 0, player1Y, paddleWidth, paddleHeight);
       } else {
         ctx.fillStyle = 'white';
         ctx.fillRect(0, player1Y, paddleWidth, paddleHeight);
       }
 
       // Draw player 2 paddle
-      if (paddleImg.complete) {
-        if (paddleImg.complete && paddleImg.naturalWidth !== 0) { ctx.drawImage(paddleImg, canvas.width - paddleWidth, player2Y, paddleWidth, paddleHeight); }
+      if (paddleImg.complete && paddleImg.naturalWidth !== 0) {
+        ctx.drawImage(paddleImg, canvas.width - paddleWidth, player2Y, paddleWidth, paddleHeight);
       } else {
         ctx.fillStyle = 'white';
         ctx.fillRect(canvas.width - paddleWidth, player2Y, paddleWidth, paddleHeight);
       }
 
       // Draw the ball
-      if (ballImg.complete) {
-        if (ballImg.complete && ballImg.naturalWidth !== 0) { ctx.drawImage(ballImg, ballX - ballRadius, ballY - ballRadius, ballRadius * 2, ballRadius * 2); }
+      if (ballImg.complete && ballImg.naturalWidth !== 0) {
+        ctx.drawImage(ballImg, ballX - ballRadius, ballY - ballRadius, ballRadius * 2, ballRadius * 2);
       } else {
         ctx.fillStyle = 'white';
         ctx.beginPath();
@@ -180,19 +171,12 @@
         player1Velocity *= friction;
       }
       player1Y += player1Velocity;
-    // Move player 2 paddle (computer AI) with unpredictability
 
-      // Move player 2 paddle (computer AI) with unpredictability
-      const randomFactor = Math.random() * 0.5;
+      // Move player 2 paddle (computer AI)
       if (ballY < player2Y + paddleHeight / 2 && player2Y > 0) {
-        player2Y -= computerSpeed * (0.8 + randomFactor * 0.3);
+        player2Y -= computerSpeed;
       } else if (ballY > player2Y + paddleHeight / 2 && player2Y < canvas.height - paddleHeight) {
-        player2Y += computerSpeed * (0.8 + randomFactor * 0.3);
-      }
-
-      // Add randomness to AI mistakes
-      if (randomFactor < 0.1) {
-        player2Y += computerSpeed * (Math.random() > 0.5 ? 1 : -1);
+        player2Y += computerSpeed;
       }
 
       // Move the ball
@@ -210,7 +194,7 @@
         (ballX - ballRadius < paddleWidth && ballY > player1Y && ballY < player1Y + paddleHeight) ||
         (ballX + ballRadius > canvas.width - paddleWidth && ballY > player2Y && ballY < player2Y + paddleHeight)
       ) {
-        ballSpeedX = -ballSpeedX * (1 + (Math.random() - 0.5) * 0.1);
+        ballSpeedX = -ballSpeedX;
         hitSound.play();
       }
 
@@ -239,8 +223,6 @@
       update();
       requestAnimationFrame(gameLoop);
     }
-
-    
 
     // Event listeners for controls
     document.addEventListener('keydown', (e) => {
