@@ -46,6 +46,7 @@
     const backgroundMusic = new Audio('level1music.wav');
     backgroundMusic.volume = 0.5;
     backgroundMusic.loop = true;
+    let musicStarted = false;
 
     let player1Y = canvas.height / 2 - paddleHeight / 2;
     let player2Y = canvas.height / 2 - paddleHeight / 2;
@@ -66,8 +67,12 @@
     let upPressed = false;
     let downPressed = false;
 
-    // Start the game loop
-    gameLoop();
+    // Start the game once all assets are loaded
+    paddleImg.onload = () => {
+      ballImg.onload = () => {
+        gameLoop();
+      };
+    };
 
     function draw() {
       // Clear the canvas
@@ -184,7 +189,10 @@
 
     // Start background music on user interaction
     canvas.addEventListener('click', () => {
-      backgroundMusic.play();
+      if (!musicStarted) {
+        backgroundMusic.play();
+        musicStarted = true;
+      }
     });
 
     // Event listeners for controls
