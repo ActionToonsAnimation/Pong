@@ -6,7 +6,7 @@
   <title>Simple Pong Game</title>
   <style>
     canvas {
-      background: url('background.jpg') no-repeat center center;
+      background: url('./background.jpg') no-repeat center center;
       background-size: cover;
       display: block;
       margin: 0 auto;
@@ -38,6 +38,7 @@
 
     let player1Y = canvas.height / 2 - paddleHeight / 2;
     let player2Y = canvas.height / 2 - paddleHeight / 2;
+    let computerSpeed = 4;
 
     // Ball properties
     let ballX = canvas.width / 2;
@@ -76,11 +77,11 @@
         player1Y += playerSpeed;
       }
 
-      // Move player 2 paddle
-      if (upPressed && player2Y > 0) {
-        player2Y -= playerSpeed;
-      } else if (downPressed && player2Y < canvas.height - paddleHeight) {
-        player2Y += playerSpeed;
+      // Move player 2 paddle (computer AI)
+      if (ballY < player2Y + paddleHeight / 2 && player2Y > 0) {
+        player2Y -= computerSpeed;
+      } else if (ballY > player2Y + paddleHeight / 2 && player2Y < canvas.height - paddleHeight) {
+        player2Y += computerSpeed;
       }
 
       // Move the ball
