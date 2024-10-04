@@ -52,20 +52,20 @@
     backgroundImg.onerror = () => console.error('Background image failed to load');
 
     // Sound effects
-    const hitSound = new Audio('hit.wav');
+    const hitSound = new Audio('https://actiontoonsanimation.github.io/Pong/hit.wav');
     hitSound.volume = 0.5;
     hitSound.oncanplaythrough = () => checkAssetsLoaded();
     hitSound.onerror = () => console.error('Hit sound failed to load');
 
-    const loseSound = new Audio('lose.wav');
+    const loseSound = new Audio('https://actiontoonsanimation.github.io/Pong/lose.wav');
     loseSound.oncanplaythrough = () => checkAssetsLoaded();
     loseSound.onerror = () => console.error('Lose sound failed to load');
 
-    const winSound = new Audio('win.wav');
+    const winSound = new Audio('https://actiontoonsanimation.github.io/Pong/win.wav');
     winSound.oncanplaythrough = () => checkAssetsLoaded();
     winSound.onerror = () => console.error('Win sound failed to load');
 
-    const backgroundMusic = new Audio('level1music.wav');
+    const backgroundMusic = new Audio('https://actiontoonsanimation.github.io/Pong/level1music.wav');
     backgroundMusic.volume = 0.5;
     backgroundMusic.loop = true;
     backgroundMusic.oncanplaythrough = () => checkAssetsLoaded();
