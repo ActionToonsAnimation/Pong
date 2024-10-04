@@ -34,8 +34,8 @@
     const paddleWidth = 10;
     const paddleHeight = 100;
     const playerSpeed = 5;
-    let player1Velocity = 0;
-    const friction = 0.8; // Friction for easing paddle to a stop
+    let player1Velocity *= friction;
+    const friction = 0.9; // Friction for easing paddle to a stop
 
     // Images
     const paddleImg = new Image();
@@ -99,6 +99,8 @@
       let flashCount = 0;
       const flashInterval = setInterval(() => {
         ctx.fillStyle = flashCount % 2 === 0 ? 'red' : 'white';
+        draw();
+        ctx.font = '20px ArcadeClassic, Arial, sans-serif';
         if (player === 'Player 1') {
           ctx.fillText('Player 1: ' + player1Score, 20, 30);
         } else {
@@ -108,11 +110,9 @@
         if (flashCount >= 2) {
           clearInterval(flashInterval);
           draw();
-        }
-      }, 500);
+        }, 500);
     }
-    }
-      }, 500);
+    }, 500);
     }
 
     // Check if all assets are loaded
@@ -120,6 +120,8 @@
       assetsLoaded++;
       if (assetsLoaded >= totalAssets) {
         
+        draw();
+        draw();
         gameLoop();
       }
     }
@@ -196,7 +198,7 @@
 
       // Ball collision with top and bottom
       if (ballY - ballRadius < 0 || ballY + ballRadius > canvas.height) {
-        ballSpeedY = 1.5 * (Math.random() > 0.5 ? 1 : -1);
+        ballSpeedY = -ballSpeedY;
         hitSound.pause(); hitSound.currentTime = 0; hitSound.play();
       }
 
@@ -204,7 +206,7 @@
       if (
         (ballX - ballRadius < paddleWidth && ballY > player1Y && ballY < player1Y + paddleHeight) || (ballX + ballRadius > canvas.width - paddleWidth && ballY > player2Y && ballY < player2Y + paddleHeight && Math.abs(ballSpeedX) < 2)
       ) {
-        ballSpeedX = -1.5 * Math.sign(ballSpeedX);
+        ballSpeedX = -ballSpeedX;
         hitSound.play();
       }
 
