@@ -36,6 +36,9 @@
     const ballImg = new Image();
     ballImg.src = 'https://actiontoonsanimation.github.io/Pong/ball.png';
 
+    // Sound effects
+    const hitSound = new Audio('hit.wav');
+
     let player1Y = canvas.height / 2 - paddleHeight / 2;
     let player2Y = canvas.height / 2 - paddleHeight / 2;
     let computerSpeed = 4;
@@ -119,6 +122,7 @@
         (ballX + ballRadius > canvas.width - paddleWidth && ballY > player2Y && ballY < player2Y + paddleHeight)
       ) {
         ballSpeedX = -ballSpeedX * (1 + (Math.random() - 0.5) * 0.1);
+        hitSound.play();
       }
 
       // Ball out of bounds (reset to middle and update score)
