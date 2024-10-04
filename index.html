@@ -42,7 +42,6 @@
     const hitSound = new Audio('hit.wav');
     const loseSound = new Audio('lose.wav');
     const winSound = new Audio('win.wav');
-    const loseSound = new Audio('lose.wav');
     const backgroundMusic = new Audio('level1music.wav');
     backgroundMusic.volume = 0.5;
     backgroundMusic.loop = true;
@@ -50,7 +49,7 @@
 
     let player1Y = canvas.height / 2 - paddleHeight / 2;
     let player2Y = canvas.height / 2 - paddleHeight / 2;
-    let computerSpeed = 3;
+    let computerSpeed = 2.5;
 
     // Ball properties
     let ballX = canvas.width / 2;
@@ -73,7 +72,7 @@
     backgroundImg.onload = () => {
       paddleImg.onload = () => {
         ballImg.onload = () => {
-          gameLoop();
+          requestAnimationFrame(gameLoop);
         };
       };
     };
@@ -83,9 +82,9 @@
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       // Draw the background
-      const backgroundImg = new Image();
-      backgroundImg.src = 'https://actiontoonsanimation.github.io/Pong/background.png';
-      ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
+      if (backgroundImg.complete) {
+        ctx.drawImage(backgroundImg, 0, 0);
+      }
 
       // Draw player 1 paddle
       ctx.drawImage(paddleImg, 0, player1Y, paddleWidth, paddleHeight);
@@ -112,7 +111,7 @@
       }
 
       // Move player 2 paddle (computer AI) with unpredictability
-      const randomFactor = Math.random();
+      const randomFactor = Math.random() * 0.5;
       if (ballY < player2Y + paddleHeight / 2 && player2Y > 0) {
         player2Y -= computerSpeed * (0.8 + randomFactor * 0.3);
       } else if (ballY > player2Y + paddleHeight / 2 && player2Y < canvas.height - paddleHeight) {
@@ -165,6 +164,8 @@
     function flashLoser(player) {
       if (player === 'Player 1') {
         loseSound.play();
+        winSound.pause();
+        winSound.currentTime = 0;
       }
       let flashCount = 0;
       const flashInterval = setInterval(() => {
