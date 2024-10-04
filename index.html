@@ -7,8 +7,7 @@
   <link rel="stylesheet" href="styles.css">
   <style>
     body {
-      background: url('background.png') no-repeat center center fixed;
-      background-size: cover;
+      background: black;
       font-family: 'ARCADECLASSIC', sans-serif;
     }
     canvas {
@@ -16,6 +15,8 @@
       margin: 20px auto;
       border: 10px solid neonblue;
       box-shadow: 0 0 20px neonblue;
+      background: url('background.png') no-repeat center center;
+      background-size: cover;
     }
     .score {
       font-size: 24px;
@@ -65,9 +66,9 @@
       x: canvas.width / 2,
       y: canvas.height / 2,
       radius: 10,
-      speed: 5,
-      velocityX: 5,
-      velocityY: 5,
+      speed: 3,
+      velocityX: 3,
+      velocityY: 3,
       color: 'white'
     };
 
@@ -99,7 +100,8 @@
     function resetBall() {
       ball.x = canvas.width / 2;
       ball.y = canvas.height / 2;
-      ball.velocityX = -ball.velocityX;
+      ball.velocityX = 3 * (Math.random() > 0.5 ? 1 : -1);
+      ball.velocityY = 3 * (Math.random() > 0.5 ? 1 : -1);
     }
 
     function update() {
@@ -107,8 +109,12 @@
       ball.x += ball.velocityX;
       ball.y += ball.velocityY;
 
-      // AI paddle movement
-      ai.y += (ball.y - (ai.y + ai.height / 2)) * 0.1;
+      // AI paddle movement (less intelligent for easier scoring)
+      if (ball.y > ai.y + ai.height / 2) {
+        ai.y += 1.5;
+      } else {
+        ai.y -= 1.5;
+      }
 
       // Wall collision (top and bottom)
       if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
@@ -120,6 +126,7 @@
       let playerPaddle = ball.x < canvas.width / 2 ? player : ai;
       if (
         ball.x - ball.radius < playerPaddle.x + playerPaddle.width &&
+        ball.x + ball.radius > playerPaddle.x &&
         ball.y > playerPaddle.y &&
         ball.y < playerPaddle.y + playerPaddle.height
       ) {
