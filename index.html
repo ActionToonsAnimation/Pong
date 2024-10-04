@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Simple Pong Game</title>
   <style>
+    @font-face {
+      font-family: 'ArcadeClassic';
+      src: url('ARCADECLASSIC.TTF') format('truetype');
+    }
     canvas {
       display: block;
       margin: 0 auto;
@@ -12,7 +16,7 @@
     body {
       text-align: center;
       color: white;
-      font-family: Arial, sans-serif;
+      font-family: 'ArcadeClassic', Arial, sans-serif;
     }
   </style>
 </head>
@@ -38,13 +42,16 @@
 
     // Sound effects
     const hitSound = new Audio('hit.wav');
+    const loseSound = new Audio('lose.wav');
+    const winSound = new Audio('win.wav');
+    const loseSound = new Audio('lose.wav');
     const backgroundMusic = new Audio('level1music.wav');
     backgroundMusic.volume = 0.5;
     backgroundMusic.loop = true;
 
     let player1Y = canvas.height / 2 - paddleHeight / 2;
     let player2Y = canvas.height / 2 - paddleHeight / 2;
-    let computerSpeed = 4;
+    let computerSpeed = 3;
 
     // Ball properties
     let ballX = canvas.width / 2;
@@ -84,7 +91,7 @@
 
       // Draw scores
       ctx.fillStyle = 'white';
-      ctx.font = '20px Arial';
+      ctx.font = '20px ArcadeClassic';
       ctx.fillText('Player 1: ' + player1Score, 20, 30);
       ctx.fillText('AI: ' + player2Score, canvas.width - 100, 30);
     }
@@ -100,9 +107,9 @@
       // Move player 2 paddle (computer AI) with unpredictability
       const randomFactor = Math.random();
       if (ballY < player2Y + paddleHeight / 2 && player2Y > 0) {
-        player2Y -= computerSpeed * (1 + randomFactor * 0.5);
+        player2Y -= computerSpeed * (0.8 + randomFactor * 0.3);
       } else if (ballY > player2Y + paddleHeight / 2 && player2Y < canvas.height - paddleHeight) {
-        player2Y += computerSpeed * (1 + randomFactor * 0.5);
+        player2Y += computerSpeed * (0.8 + randomFactor * 0.3);
       }
 
       // Add randomness to AI mistakes
@@ -132,9 +139,12 @@
       // Ball out of bounds (reset to middle and update score)
       if (ballX < 0) {
         player2Score++;
+        flashLoser('AI');
         resetBall();
       } else if (ballX > canvas.width) {
         player1Score++;
+        winSound.play();
+        flashLoser('Player 1');
         resetBall();
       }
     }
@@ -143,6 +153,27 @@
       ballX = canvas.width / 2;
       ballY = canvas.height / 2;
       ballSpeedX = -ballSpeedX;
+    }
+
+    function flashLoser(player) {
+      if (player === 'Player 1') {
+        loseSound.play();
+      }
+      let flashCount = 0;
+      const flashInterval = setInterval(() => {
+        ctx.clearRect(0, 0, canvas.width, 50);
+        ctx.fillStyle = flashCount % 2 === 0 ? 'red' : 'white';
+        ctx.font = '20px ArcadeClassic';
+        if (player === 'Player 1') {
+          ctx.fillText('Player 1: ' + player1Score, 20, 30);
+        } else {
+          ctx.fillText('AI: ' + player2Score, canvas.width - 100, 30);
+        }
+        flashCount++;
+        if (flashCount > 5) {
+          clearInterval(flashInterval);
+        }
+      }, 200);
     }
 
     function gameLoop() {
