@@ -111,7 +111,7 @@
     function checkAssetsLoaded() {
       assetsLoaded++;
       if (assetsLoaded >= totalAssets) {
-        backgroundMusic.play().catch((error) => { console.warn('Autoplay blocked: ', error); });
+        
         gameLoop();
       }
     }
@@ -168,7 +168,7 @@
       } else if (downPressed && player1Y < canvas.height - paddleHeight) {
         player1Velocity = playerSpeed;
       } else {
-        player1Velocity *= friction;
+        player1Velocity = 0;
       }
       player1Y += player1Velocity;
 
@@ -185,7 +185,7 @@
 
       // Ball collision with top and bottom
       if (ballY - ballRadius < 0 || ballY + ballRadius > canvas.height) {
-        ballSpeedY = Math.sign(ballSpeedY) * 2.5;
+        ballSpeedY = 2.5;
         hitSound.pause(); hitSound.currentTime = 0; hitSound.play();
       }
 
@@ -194,7 +194,7 @@
         (ballX - ballRadius < paddleWidth && ballY > player1Y && ballY < player1Y + paddleHeight) ||
         (ballX + ballRadius > canvas.width - paddleWidth && ballY > player2Y && ballY < player2Y + paddleHeight)
       ) {
-        ballSpeedX = Math.sign(ballSpeedX) * 2.5;
+        ballSpeedX = 2.5;
         hitSound.play();
       }
 
@@ -226,6 +226,9 @@
 
     // Event listeners for controls
     document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        backgroundMusic.play().catch((error) => { console.warn('Autoplay blocked: ', error); });
+      }
       if (e.key === 'ArrowUp') upPressed = true;
       if (e.key === 'ArrowDown') downPressed = true;
     });
