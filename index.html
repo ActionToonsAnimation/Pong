@@ -47,6 +47,10 @@
     let ballSpeedY = 4;
     const ballRadius = 10;
 
+    // Scores
+    let player1Score = 0;
+    let player2Score = 0;
+
     // Controls
     let upPressed = false;
     let downPressed = false;
@@ -71,6 +75,12 @@
 
       // Draw the ball
       ctx.drawImage(ballImg, ballX - ballRadius, ballY - ballRadius, ballRadius * 2, ballRadius * 2);
+
+      // Draw scores
+      ctx.fillStyle = 'white';
+      ctx.font = '20px Arial';
+      ctx.fillText('Player 1: ' + player1Score, 20, 30);
+      ctx.fillText('AI: ' + player2Score, canvas.width - 100, 30);
     }
 
     function update() {
@@ -81,11 +91,17 @@
         player1Y += playerSpeed;
       }
 
-      // Move player 2 paddle (computer AI)
+      // Move player 2 paddle (computer AI) with unpredictability
+      const randomFactor = Math.random();
       if (ballY < player2Y + paddleHeight / 2 && player2Y > 0) {
-        player2Y -= computerSpeed;
+        player2Y -= computerSpeed * (1 + randomFactor * 0.5);
       } else if (ballY > player2Y + paddleHeight / 2 && player2Y < canvas.height - paddleHeight) {
-        player2Y += computerSpeed;
+        player2Y += computerSpeed * (1 + randomFactor * 0.5);
+      }
+
+      // Add randomness to AI mistakes
+      if (randomFactor < 0.1) {
+        player2Y += computerSpeed * (Math.random() > 0.5 ? 1 : -1);
       }
 
       // Move the ball
@@ -105,12 +121,20 @@
         ballSpeedX = -ballSpeedX * (1 + (Math.random() - 0.5) * 0.1);
       }
 
-      // Ball out of bounds (reset to middle)
-      if (ballX < 0 || ballX > canvas.width) {
-        ballX = canvas.width / 2;
-        ballY = canvas.height / 2;
-        ballSpeedX = -ballSpeedX;
+      // Ball out of bounds (reset to middle and update score)
+      if (ballX < 0) {
+        player2Score++;
+        resetBall();
+      } else if (ballX > canvas.width) {
+        player1Score++;
+        resetBall();
       }
+    }
+
+    function resetBall() {
+      ballX = canvas.width / 2;
+      ballY = canvas.height / 2;
+      ballSpeedX = -ballSpeedX;
     }
 
     function gameLoop() {
