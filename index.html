@@ -40,6 +40,7 @@
 
     // Sound effects
     const hitSound = new Audio('hit.wav');
+    hitSound.volume = 0.5;
     const loseSound = new Audio('lose.wav');
     const winSound = new Audio('win.wav');
     const backgroundMusic = new Audio('level1music.wav');
@@ -72,7 +73,7 @@
     backgroundImg.onload = () => {
       paddleImg.onload = () => {
         ballImg.onload = () => {
-          requestAnimationFrame(gameLoop);
+          setTimeout(gameLoop, 1000 / 60);
         };
       };
     };
@@ -169,7 +170,7 @@
       }
       let flashCount = 0;
       const flashInterval = setInterval(() => {
-        ctx.clearRect(0, 0, canvas.width, 50);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = flashCount % 2 === 0 ? 'red' : 'white';
         ctx.font = '20px ArcadeClassic';
         if (player === 'Player 1') {
