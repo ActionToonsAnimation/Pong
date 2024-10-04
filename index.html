@@ -12,7 +12,7 @@
     canvas {
       display: block;
       margin: 0 auto;
-      border: 5px solid neon;
+      border: 10px solid #39ff14; /* Thick neon green border */
       border-color: #39ff14; /* Neon green border */
     }
     body {
@@ -190,11 +190,11 @@
       // Ball out of bounds (reset to middle and update score)
       if (ballX < 0) {
         player2Score++;
-        winSound.play(); // AI scores
+        loseSound.play(); // AI scores
         resetBall();
       } else if (ballX > canvas.width) {
         player1Score++;
-        loseSound.play(); // Player scores
+        winSound.play(); // Player scores
         resetBall();
       }
     }
@@ -211,8 +211,7 @@
       requestAnimationFrame(gameLoop);
     }
 
-    // Start background music on user interaction
-    backgroundMusic.play();
+    window.addEventListener('load', () => backgroundMusic.play());
 
     // Event listeners for controls
     document.addEventListener('keydown', (e) => {
