@@ -12,8 +12,8 @@
     canvas {
       display: block;
       margin: 0 auto;
-      border: 10px solid #39ff14; /* Thick neon green border */
-      border-color: #39ff14; /* Neon green border */
+      border: 10px solid #00f; /* Thick neon blue border */
+      border-color: #00f; /* Neon blue border */
     }
     body {
       text-align: center;
@@ -117,7 +117,7 @@
     function checkAssetsLoaded() {
       assetsLoaded++;
       if (assetsLoaded >= totalAssets) {
-        backgroundMusic.play();
+        backgroundMusic.play().catch((error) => { console.warn('Autoplay blocked: ', error); });
         gameLoop();
       }
     }
@@ -128,7 +128,7 @@
 
       // Draw the background
       if (backgroundImg.complete) {
-        ctx.drawImage(backgroundImg, 0, 0);
+        if (backgroundImg.complete && backgroundImg.naturalWidth !== 0) { ctx.drawImage(backgroundImg, 0, 0); }
       } else {
         ctx.fillStyle = 'black'; // Fallback background color
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -136,7 +136,7 @@
 
       // Draw player 1 paddle
       if (paddleImg.complete) {
-        ctx.drawImage(paddleImg, 0, player1Y, paddleWidth, paddleHeight);
+        if (paddleImg.complete && paddleImg.naturalWidth !== 0) { ctx.drawImage(paddleImg, 0, player1Y, paddleWidth, paddleHeight); }
       } else {
         ctx.fillStyle = 'white';
         ctx.fillRect(0, player1Y, paddleWidth, paddleHeight);
@@ -144,7 +144,7 @@
 
       // Draw player 2 paddle
       if (paddleImg.complete) {
-        ctx.drawImage(paddleImg, canvas.width - paddleWidth, player2Y, paddleWidth, paddleHeight);
+        if (paddleImg.complete && paddleImg.naturalWidth !== 0) { ctx.drawImage(paddleImg, canvas.width - paddleWidth, player2Y, paddleWidth, paddleHeight); }
       } else {
         ctx.fillStyle = 'white';
         ctx.fillRect(canvas.width - paddleWidth, player2Y, paddleWidth, paddleHeight);
@@ -152,7 +152,7 @@
 
       // Draw the ball
       if (ballImg.complete) {
-        ctx.drawImage(ballImg, ballX - ballRadius, ballY - ballRadius, ballRadius * 2, ballRadius * 2);
+        if (ballImg.complete && ballImg.naturalWidth !== 0) { ctx.drawImage(ballImg, ballX - ballRadius, ballY - ballRadius, ballRadius * 2, ballRadius * 2); }
       } else {
         ctx.fillStyle = 'white';
         ctx.beginPath();
