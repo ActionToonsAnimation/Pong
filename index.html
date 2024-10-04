@@ -1,338 +1,258 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Basic Block Dude HTML Game</title>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Pong Game</title>
   <style>
-  html, body {
-    height: 100%;
-    margin: 0;
-  }
-
-  body {
-    background: #fafafa;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
-
-  canvas {
-    border: 1px solid white;
-    margin-bottom: 1rem;
-  }
+    @font-face {
+      font-family: 'ArcadeClassic';
+      src: url('ARCADECLASSIC.TTF') format('truetype');
+    }
+    canvas {
+      display: block;
+      margin: 0 auto;
+      border: 5px solid neon;
+      border-color: #39ff14; /* Neon green border */
+    }
+    body {
+      text-align: center;
+      color: white;
+      font-family: 'ArcadeClassic', Arial, sans-serif;
+      background-color: black;
+    }
   </style>
 </head>
 <body>
-<canvas width="384" height="256" id="game"></canvas>
-<div>
-  <div><b>CONTROLS</b></div>
-  <div><b>Left / Right Arrow:</b> Move left / right</div>
-  <div><b>Down Arrow:</b> Pick up or drop block</div>
-</div>
-<script>
-// since block dude and sokoban share similarities in look and play style
-// we'll reuse a lot of the code from the basic sokoban game
-// @see https://gist.github.com/straker/2fddb507d4bb6bec54ea2fdb022d020c
-const canvas = document.getElementById('game');
-const context = canvas.getContext('2d');
+  <h1>Simple Pong Game</h1>
+  <canvas id="gameCanvas" width="800" height="600"></canvas>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
 
-const grid = 32;
+    // Paddle properties
+    const paddleWidth = 10;
+    const paddleHeight = 100;
+    const playerSpeed = 8;
 
-// create a new canvas and draw the wall image. then we can use this
-// canvas to draw the images later on
-const wallCanvas = document.createElement('canvas');
-const wallCtx = wallCanvas.getContext('2d');
-wallCanvas.width = wallCanvas.height = grid;
+    // Images
+    const paddleImg = new Image();
+    paddleImg.src = 'https://actiontoonsanimation.github.io/Pong/paddle.png';
+    paddleImg.onload = () => checkAssetsLoaded();
+    paddleImg.onerror = () => console.error('Paddle image failed to load');
 
-wallCtx.fillStyle = 'white';
-wallCtx.fillRect(1, 1, grid, grid);
-wallCtx.fillStyle = 'black';
+    const ballImg = new Image();
+    ballImg.src = 'https://actiontoonsanimation.github.io/Pong/ball.png';
+    ballImg.onload = () => checkAssetsLoaded();
+    ballImg.onerror = () => console.error('Ball image failed to load');
 
-// 1st row brick
-wallCtx.fillRect(0, 1, 21, 10);
-wallCtx.fillRect(23, 1, 10, 10);
+    const backgroundImg = new Image();
+    backgroundImg.src = 'https://actiontoonsanimation.github.io/Pong/background.png';
+    backgroundImg.onload = () => checkAssetsLoaded();
+    backgroundImg.onerror = () => console.error('Background image failed to load');
 
-// 2nd row bricks
-wallCtx.fillRect(0, 12, 10, 9);
-wallCtx.fillRect(11, 12, 21, 9);
+    // Sound effects
+    const hitSound = new Audio('hit.wav');
+    hitSound.volume = 0.5;
+    hitSound.oncanplaythrough = () => checkAssetsLoaded();
+    hitSound.onerror = () => console.error('Hit sound failed to load');
 
-// 3rd row bricks
-wallCtx.fillRect(0, 22, 21, 10);
-wallCtx.fillRect(23, 22, 10, 10);
+    const loseSound = new Audio('lose.wav');
+    loseSound.oncanplaythrough = () => checkAssetsLoaded();
+    loseSound.onerror = () => console.error('Lose sound failed to load');
 
-// the direction to move the player each frame. we'll use change in
-// direction so "row: 1" means move down 1 row, "row: -1" means move
-// up one row, etc.
-let playerDir = { row: 0, col: 0 };
-let playerPos = { row: 0, col: 0 };  // player position in the 2d array
-let playerFacing = -1;  // the direction the player is facing (1 for right, -1 for left)
-let rAF = null;  // keep track of the animation frame so we can cancel it
-let carryingBlock = false;  // if the player is carrying a block
-let width = 0;  // find the largest row and use that as the game width
+    const winSound = new Audio('win.wav');
+    winSound.oncanplaythrough = () => checkAssetsLoaded();
+    winSound.onerror = () => console.error('Win sound failed to load');
 
-// create a mapping of object types using the sok file format
-const types = {
-  wall: '#',
-  player: '@',
-  block: '$',
-  goal: '.',
-  empty: ' '
-};
+    const backgroundMusic = new Audio('level1music.wav');
+    backgroundMusic.volume = 0.5;
+    backgroundMusic.loop = true;
+    backgroundMusic.oncanplaythrough = () => checkAssetsLoaded();
+    backgroundMusic.onerror = () => console.error('Background music failed to load');
 
-// a level using the sok file format
-const level1 = `
- #    ##        ##
- #                #
-##                 #
-#.                  #
-##                   #
- #           #  $    #
- #           #$ $$@  #
- #####   #############
-     #  $#
-     #####
-`;
+    let musicStarted = false;
+    let assetsLoaded = 0;
+    const totalAssets = 7; // Number of image and audio assets
 
-// keep track of what is in every cell of the game using a 2d array
-const cells = [];
+    let player1Y = canvas.height / 2 - paddleHeight / 2;
+    let player2Y = canvas.height / 2 - paddleHeight / 2;
+    let computerSpeed = 2.5;
 
-// use each line of the level as the row (remove empty lines)
-level1.split('\n')
-  .filter(rowData => !!rowData)
-  .forEach((rowData, row) => {
-    cells[row] = [];
+    // Ball properties
+    let ballX = canvas.width / 2;
+    let ballY = canvas.height / 2;
+    let ballSpeedX = 4;
+    let ballSpeedY = 4;
+    const ballRadius = 10;
 
-    if (rowData.length > width) {
-      width = rowData.length;
+    // Scores
+    let player1Score = 0;
+    let player2Score = 0;
+
+    // Controls
+    let upPressed = false;
+    let downPressed = false;
+
+    // Check if all assets are loaded
+    function checkAssetsLoaded() {
+      assetsLoaded++;
+      if (assetsLoaded === totalAssets) {
+        gameLoop();
+      }
     }
 
-    // use each character of the level as the col
-    rowData.split('').forEach((colData, col) => {
-      cells[row][col] = colData;
+    function draw() {
+      // Clear the canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      if (colData === types.player) {
-        playerPos = { row, col };
+      // Draw the background
+      if (backgroundImg.complete) {
+        ctx.drawImage(backgroundImg, 0, 0);
+      } else {
+        ctx.fillStyle = 'black'; // Fallback background color
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
+      // Draw player 1 paddle
+      if (paddleImg.complete) {
+        ctx.drawImage(paddleImg, 0, player1Y, paddleWidth, paddleHeight);
+      } else {
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, player1Y, paddleWidth, paddleHeight);
+      }
+
+      // Draw player 2 paddle
+      if (paddleImg.complete) {
+        ctx.drawImage(paddleImg, canvas.width - paddleWidth, player2Y, paddleWidth, paddleHeight);
+      } else {
+        ctx.fillStyle = 'white';
+        ctx.fillRect(canvas.width - paddleWidth, player2Y, paddleWidth, paddleHeight);
+      }
+
+      // Draw the ball
+      if (ballImg.complete) {
+        ctx.drawImage(ballImg, ballX - ballRadius, ballY - ballRadius, ballRadius * 2, ballRadius * 2);
+      } else {
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Draw scores
+      ctx.fillStyle = 'white';
+      ctx.font = '20px ArcadeClassic, Arial, sans-serif';
+      ctx.fillText('Player 1: ' + player1Score, 20, 30);
+      ctx.fillText('AI: ' + player2Score, canvas.width - 100, 30);
+    }
+
+    function update() {
+      // Move player 1 paddle
+      if (upPressed && player1Y > 0) {
+        player1Y -= playerSpeed;
+      } else if (downPressed && player1Y < canvas.height - paddleHeight) {
+        player1Y += playerSpeed;
+      }
+
+      // Move player 2 paddle (computer AI) with unpredictability
+      const randomFactor = Math.random() * 0.5;
+      if (ballY < player2Y + paddleHeight / 2 && player2Y > 0) {
+        player2Y -= computerSpeed * (0.8 + randomFactor * 0.3);
+      } else if (ballY > player2Y + paddleHeight / 2 && player2Y < canvas.height - paddleHeight) {
+        player2Y += computerSpeed * (0.8 + randomFactor * 0.3);
+      }
+
+      // Add randomness to AI mistakes
+      if (randomFactor < 0.1) {
+        player2Y += computerSpeed * (Math.random() > 0.5 ? 1 : -1);
+      }
+
+      // Move the ball
+      ballX += ballSpeedX;
+      ballY += ballSpeedY;
+
+      // Ball collision with top and bottom
+      if (ballY - ballRadius < 0 || ballY + ballRadius > canvas.height) {
+        ballSpeedY = -ballSpeedY;
+        hitSound.play();
+      }
+
+      // Ball collision with paddles
+      if (
+        (ballX - ballRadius < paddleWidth && ballY > player1Y && ballY < player1Y + paddleHeight) ||
+        (ballX + ballRadius > canvas.width - paddleWidth && ballY > player2Y && ballY < player2Y + paddleHeight)
+      ) {
+        ballSpeedX = -ballSpeedX * (1 + (Math.random() - 0.5) * 0.1);
+        hitSound.play();
+      }
+
+      // Ball out of bounds (reset to middle and update score)
+      if (ballX < 0) {
+        player2Score++;
+        flashLoser('AI');
+        resetBall();
+      } else if (ballX > canvas.width) {
+        player1Score++;
+        winSound.play();
+        flashLoser('Player 1');
+        resetBall();
+      }
+    }
+
+    function resetBall() {
+      ballX = canvas.width / 2;
+      ballY = canvas.height / 2;
+      ballSpeedX = -ballSpeedX;
+    }
+
+    function flashLoser(player) {
+      if (player === 'Player 1') {
+        loseSound.play();
+        winSound.pause();
+        winSound.currentTime = 0;
+      }
+      let flashCount = 0;
+      const flashInterval = setInterval(() => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = flashCount % 2 === 0 ? 'red' : 'white';
+        ctx.font = '20px ArcadeClassic, Arial, sans-serif';
+        if (player === 'Player 1') {
+          ctx.fillText('Player 1: ' + player1Score, 20, 30);
+        } else {
+          ctx.fillText('AI: ' + player2Score, canvas.width - 100, 30);
+        }
+        flashCount++;
+        if (flashCount > 5) {
+          clearInterval(flashInterval);
+        }
+      }, 200);
+    }
+
+    function gameLoop() {
+      draw();
+      update();
+      requestAnimationFrame(gameLoop);
+    }
+
+    // Start background music on user interaction
+    canvas.addEventListener('click', () => {
+      if (!musicStarted) {
+        backgroundMusic.play();
+        musicStarted = true;
       }
     });
-});
 
-// clamp a value between two values
-function clamp(min, max, value) {
-  return Math.min(Math.max(min, value), max);
-}
+    // Event listeners for controls
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowUp') upPressed = true;
+      if (e.key === 'ArrowDown') downPressed = true;
+    });
 
-// move an entity from one cell to another
-function move(startPos, endPos) {
-  const startCell = cells[startPos.row][startPos.col];
-  const endCell = cells[endPos.row][endPos.col];
-
-  const isPlayer = startCell === types.player;
-
-  // first remove then entity from its current cell
-  switch(startCell) {
-
-    // if the start cell is the player or a block (no goal)
-    // then leave empty
-    case types.player:
-    case types.block:
-      cells[startPos.row][startPos.col] = types.empty;
-      break;
-  }
-
-  // then move then entity into the new cell
-  switch(endCell) {
-
-    // if the end cell is empty, add the block or player
-    case types.empty:
-      cells[endPos.row][endPos.col] = isPlayer ? types.player : types.block;
-      break;
-  }
-
-  playerFacing = endPos.col - startPos.col;
-
-  // move the block along with the player
-  if (carryingBlock) {
-    cells[startPos.row - 1][startPos.col] = types.empty;
-    cells[endPos.row - 1][endPos.col] = types.block;
-  }
-}
-
-// game loop
-function loop() {
-  rAF = requestAnimationFrame(loop);
-  context.clearRect(0,0,canvas.width,canvas.height);
-
-  // check to see if the player can move in the desired direction
-  let row = playerPos.row + playerDir.row;
-  const col = playerPos.col + playerDir.col;
-  const cell = cells[row][col];
-  switch(cell) {
-
-    // allow the player to move into empty or goal cells
-    case types.empty:
-    case types.goal:
-      // apply gravity
-      let rowBelow = row + 1 + playerDir.row;
-      let belowCell = cells[rowBelow][col];
-      while (belowCell === types.empty || belowCell == types.goal) {
-        row = rowBelow;
-        rowBelow = row + 1 + playerDir.row;
-        belowCell = cells[rowBelow][col];
-      }
-
-      move(playerPos, { row, col });
-
-      playerPos.row = row;
-      playerPos.col = col;
-
-      // end game
-      if (cell === types.goal) {
-        cancelAnimationFrame(rAF);
-      }
-      break;
-
-    // only allow the player to move on top of a block or wall
-    // if it is empty above
-    case types.block:
-    case types.wall:
-      const rowAbove = row - 1 + playerDir.row;
-      const nextCell = cells[rowAbove][col];
-
-      if (nextCell === types.empty || nextCell === types.goal) {
-        move(playerPos, { row: rowAbove, col });
-
-        playerPos.row = rowAbove;
-        playerPos.col = col;
-      }
-      break;
-  }
-
-  // reset player dir after checking move
-  playerDir = { row: 0, col: 0 };
-
-  // draw the board
-  context.strokeStyle = 'black';
-  context.fillStyle = 'black';
-  context.lineWidth = 2;
-
-  // center the view to the player but don't let the view go outside
-  // the game boundaries
-  const startRow = clamp(0, cells.length - 8, playerPos.row - 4);
-  const startCol = clamp(0, width - 12, playerPos.col - 6);
-
-  for (let row = startRow; row < cells.length; row++) {
-    for (let col = startCol; col < cells[row].length; col++) {
-      const cell = cells[row][col];
-      const drawRow = row - startRow;
-      const drawCol = col - startCol;
-
-      switch(cell) {
-        case types.wall:
-          context.drawImage(wallCanvas, drawCol * grid, drawRow * grid);
-          break;
-
-        case types.block:
-          context.strokeRect(drawCol * grid, drawRow * grid, grid, grid);
-          break;
-
-        case types.goal:
-          context.strokeRect((drawCol + 0.2) * grid, drawRow * grid, grid - 12, grid);
-          context.beginPath();
-          context.arc((drawCol + 0.7) * grid, (drawRow + 0.5) * grid, 2, 0, Math.PI * 2);
-          context.fill();
-          break;
-
-        case types.player:
-          context.beginPath();
-
-          // head
-          context.arc((drawCol + 0.5) * grid, (drawRow + 0.3) * grid, 7, 0, Math.PI * 2);
-          context.stroke();
-          // hat
-          const x = (drawCol + ( playerFacing < 0 ? 0.1 : 0.6)) * grid;
-          context.fillRect(x, (drawRow + 0.15) * grid, grid / 3, 2);
-          context.beginPath();
-          context.arc((drawCol + 0.5) * grid, (drawRow + 0.25) * grid, 7, 0, Math.PI, 1);
-          context.fill();
-          // body
-          context.fillRect((drawCol + 0.48) * grid, (drawRow + 0.4) * grid, 2, grid / 2.5 );
-          // arms
-          context.fillRect((drawCol + 0.3) * grid, (drawRow + 0.6) * grid, grid / 2.5, 2);
-          // legs
-          context.moveTo((drawCol + 0.5) * grid, (drawRow + 0.8) * grid);
-          context.lineTo((drawCol + 0.65) * grid, (drawRow + 1) * grid);
-          context.moveTo((drawCol + 0.5) * grid, (drawRow + 0.8) * grid);
-          context.lineTo((drawCol + 0.35) * grid, (drawRow + 1) * grid);
-          context.stroke();
-      }
-    }
-  }
-}
-
-// listen to keyboard events to move the player
-document.addEventListener('keydown', function(e) {
-  playerDir = { row: 0, col: 0};
-
-  // left arrow key
-  if (e.which === 37) {
-    playerDir.col = -1;
-  }
-  // right arrow key
-  else if (e.which === 39) {
-    playerDir.col = 1;
-  }
-  // down arrow key
-  else if (e.which === 40) {
-    const nextCol = playerFacing + playerPos.col;
-    const nextCell = cells[playerPos.row][nextCol];
-    const cellAbove = cells[playerPos.row - 1][nextCol];
-    const cellBelow = cells[playerPos.row + 1][nextCol];
-
-    // pick up block only if there isn't a block on top of it
-    if (
-      !carryingBlock &&
-      nextCell === types.block &&
-      cellAbove === types.empty
-    ) {
-      cells[playerPos.row][nextCol] = types.empty;
-      cells[playerPos.row - 1][playerPos.col] = types.block;
-      carryingBlock = true;
-    }
-    // put down block
-    else if (carryingBlock) {
-      let row = playerPos.row;
-
-      // drop block
-      if (nextCell === types.empty) {
-        // apply gravity
-        let rowBelow = row - 1;
-        let belowCell = cells[rowBelow][nextCol];
-        while (belowCell === types.empty) {
-          row = rowBelow;
-          rowBelow++;
-          belowCell = cells[rowBelow][nextCol];
-        }
-      }
-
-      // put block on top wall or block
-      if (
-        (nextCell === types.wall ||
-         nextCell === types.block) &&
-        cellAbove === types.empty
-      ) {
-        row = row - 1;
-      }
-
-      cells[playerPos.row - 1][playerPos.col] = types.empty;
-      cells[row][nextCol] = types.block;
-      carryingBlock = false;
-    }
-  }
-});
-
-// start the game
-requestAnimationFrame(loop);
-</script>
+    document.addEventListener('keyup', (e) => {
+      if (e.key === 'ArrowUp') upPressed = false;
+      if (e.key === 'ArrowDown') downPressed = false;
+    });
+  </script>
 </body>
 </html>
