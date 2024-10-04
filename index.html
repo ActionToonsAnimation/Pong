@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PONG</title>
+  <title>Simple Pong Game</title>
   <style>
     @font-face {
       font-family: 'ArcadeClassic';
@@ -176,8 +176,6 @@
         player1Velocity *= friction;
       }
       player1Y += player1Velocity;
-      } else if (downPressed && player1Y < canvas.height - paddleHeight) {
-        player1Y += playerSpeed;
       }
 
       // Move player 2 paddle (computer AI) with unpredictability
@@ -200,7 +198,7 @@
       // Ball collision with top and bottom
       if (ballY - ballRadius < 0 || ballY + ballRadius > canvas.height) {
         ballSpeedY = -ballSpeedY;
-        hitSound.pause(); hitSound.currentTime = 0; hitSound.pause(); hitSound.currentTime = 0; hitSound.pause(); hitSound.currentTime = 0; hitSound.play();
+        hitSound.pause(); hitSound.currentTime = 0; hitSound.play();
       }
 
       // Ball collision with paddles
