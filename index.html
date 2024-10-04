@@ -48,10 +48,13 @@
     const ballRadius = 10;
 
     // Controls
-    let wPressed = false;
-    let sPressed = false;
     let upPressed = false;
     let downPressed = false;
+
+    // Ensure background image is loaded before starting the game loop
+    backgroundImg.onload = () => {
+      gameLoop();
+    };
 
     function draw() {
       // Clear the canvas
@@ -59,8 +62,6 @@
 
       // Draw the background
       ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = 'black';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // Draw player 1 paddle
       ctx.drawImage(paddleImg, 0, player1Y, paddleWidth, paddleHeight);
@@ -74,9 +75,9 @@
 
     function update() {
       // Move player 1 paddle
-      if (wPressed && player1Y > 0) {
+      if (upPressed && player1Y > 0) {
         player1Y -= playerSpeed;
-      } else if (sPressed && player1Y < canvas.height - paddleHeight) {
+      } else if (downPressed && player1Y < canvas.height - paddleHeight) {
         player1Y += playerSpeed;
       }
 
@@ -120,21 +121,14 @@
 
     // Event listeners for controls
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'w') wPressed = true;
-      if (e.key === 's') sPressed = true;
       if (e.key === 'ArrowUp') upPressed = true;
       if (e.key === 'ArrowDown') downPressed = true;
     });
 
     document.addEventListener('keyup', (e) => {
-      if (e.key === 'w') wPressed = false;
-      if (e.key === 's') sPressed = false;
       if (e.key === 'ArrowUp') upPressed = false;
       if (e.key === 'ArrowDown') downPressed = false;
     });
-
-    // Start the game loop
-    gameLoop();
   </script>
 </body>
 </html>
