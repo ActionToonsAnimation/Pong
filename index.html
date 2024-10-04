@@ -71,7 +71,7 @@
     backgroundMusic.oncanplaythrough = () => checkAssetsLoaded();
     backgroundMusic.onerror = () => console.error('Background music failed to load');
 
-    let musicStarted = false;
+    
     let assetsLoaded = 0;
     const totalAssets = 7; // Number of image and audio assets
 
@@ -175,7 +175,7 @@
       // Ball collision with top and bottom
       if (ballY - ballRadius < 0 || ballY + ballRadius > canvas.height) {
         ballSpeedY = -ballSpeedY;
-        hitSound.play();
+        hitSound.pause(); hitSound.currentTime = 0; hitSound.pause(); hitSound.currentTime = 0; hitSound.play();
       }
 
       // Ball collision with paddles
@@ -190,11 +190,11 @@
       // Ball out of bounds (reset to middle and update score)
       if (ballX < 0) {
         player2Score++;
-        winSound.play(); // AI wins
+        loseSound.play(); // AI scores
         resetBall();
       } else if (ballX > canvas.width) {
         player1Score++;
-        loseSound.play(); // Player loses
+        winSound.play(); // Player scores
         resetBall();
       }
     }
@@ -212,12 +212,7 @@
     }
 
     // Start background music on user interaction
-    canvas.addEventListener('click', () => {
-      if (!musicStarted) {
-        backgroundMusic.play();
-        musicStarted = true;
-      }
-    });
+    backgroundMusic.play();
 
     // Event listeners for controls
     document.addEventListener('keydown', (e) => {
