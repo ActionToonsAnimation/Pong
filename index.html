@@ -38,6 +38,10 @@
 
     // Sound effects
     const hitSound = new Audio('hit.wav');
+    const backgroundMusic = new Audio('level1music.wav');
+    backgroundMusic.volume = 0.5;
+    backgroundMusic.loop = true;
+    backgroundMusic.play();
 
     let player1Y = canvas.height / 2 - paddleHeight / 2;
     let player2Y = canvas.height / 2 - paddleHeight / 2;
