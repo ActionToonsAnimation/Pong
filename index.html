@@ -3,251 +3,172 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simple Pong Game</title>
+  <title>Pong Game</title>
+  <link rel="stylesheet" href="styles.css">
   <style>
-    @font-face {
-      font-family: 'ArcadeClassic';
-      src: url('ARCADECLASSIC.TTF') format('truetype');
+    body {
+      background: url('background.png') no-repeat center center fixed;
+      background-size: cover;
+      font-family: 'ARCADECLASSIC', sans-serif;
     }
     canvas {
       display: block;
-      margin: 0 auto;
-      border: 10px solid #00f; /* Thick neon blue border */
+      margin: 20px auto;
+      border: 10px solid neonblue;
+      box-shadow: 0 0 20px neonblue;
     }
-    body {
-      text-align: center;
+    .score {
+      font-size: 24px;
       color: white;
-      font-family: 'ArcadeClassic', Arial, sans-serif;
-      background-color: black;
+    }
+    .flash-red {
+      color: red;
+      animation: flash 0.5s ease-in-out 2;
+    }
+    @keyframes flash {
+      0%, 100% {
+        color: white;
+      }
+      50% {
+        color: red;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>Simple Pong Game</h1>
-  <canvas id="gameCanvas" width="800" height="600"></canvas>
+  <h1 class="score" id="player1">Player 1: 0</h1>
+  <h1 class="score" id="ai">AI: 0</h1>
+  <canvas id="pongCanvas" width="800" height="600"></canvas>
   <script>
-    const canvas = document.getElementById('gameCanvas');
+    const canvas = document.getElementById('pongCanvas');
     const ctx = canvas.getContext('2d');
 
-    // Paddle properties
-    const paddleWidth = 10;
-    const paddleHeight = 100;
-    const playerSpeed = 5;
-    let player1Velocity = 0;
+    const player = {
+      x: 0,
+      y: canvas.height / 2 - 50,
+      width: 10,
+      height: 100,
+      color: 'white',
+      score: 0
+    };
 
-    // Images
-    const paddleImg = new Image();
-    paddleImg.src = 'https://actiontoonsanimation.github.io/Pong/paddle.png';
-    paddleImg.onload = () => checkAssetsLoaded();
-    paddleImg.onerror = () => console.error('Paddle image failed to load');
+    const ai = {
+      x: canvas.width - 10,
+      y: canvas.height / 2 - 50,
+      width: 10,
+      height: 100,
+      color: 'white',
+      score: 0
+    };
 
-    const ballImg = new Image();
-    ballImg.src = 'https://actiontoonsanimation.github.io/Pong/ball.png';
-    ballImg.onload = () => checkAssetsLoaded();
-    ballImg.onerror = () => console.error('Ball image failed to load');
+    const ball = {
+      x: canvas.width / 2,
+      y: canvas.height / 2,
+      radius: 10,
+      speed: 5,
+      velocityX: 5,
+      velocityY: 5,
+      color: 'white'
+    };
 
-    const backgroundImg = new Image();
-    backgroundImg.src = 'https://actiontoonsanimation.github.io/Pong/background.png';
-    backgroundImg.onload = () => checkAssetsLoaded();
-    backgroundImg.onerror = () => console.error('Background image failed to load');
+    const hitSound = new Audio('hit.wav');
+    const winSound = new Audio('win.wav');
+    const loseSound = new Audio('lose.wav');
+    const levelMusic = new Audio('level1music.wav');
+    levelMusic.loop = true;
+    levelMusic.play();
 
-    // Sound effects
-    const hitSound = new Audio('https://actiontoonsanimation.github.io/Pong/hit.wav');
-    hitSound.volume = 0.5;
-    hitSound.oncanplaythrough = () => checkAssetsLoaded();
-    hitSound.onerror = () => console.error('Hit sound failed to load');
-
-    const loseSound = new Audio('https://actiontoonsanimation.github.io/Pong/lose.wav');
-    loseSound.oncanplaythrough = () => checkAssetsLoaded();
-    loseSound.onerror = () => console.error('Lose sound failed to load');
-
-    const winSound = new Audio('https://actiontoonsanimation.github.io/Pong/win.wav');
-    winSound.oncanplaythrough = () => checkAssetsLoaded();
-    winSound.onerror = () => console.error('Win sound failed to load');
-
-    const backgroundMusic = new Audio('https://actiontoonsanimation.github.io/Pong/level1music.wav');
-    backgroundMusic.volume = 0.5;
-    backgroundMusic.loop = true;
-    backgroundMusic.onerror = () => console.error('Background music failed to load');
-
-    let assetsLoaded = 0;
-    const totalAssets = 7; // Number of image and audio assets
-
-    let player1Y = canvas.height / 2 - paddleHeight / 2;
-    let player2Y = canvas.height / 2 - paddleHeight / 2;
-    let computerSpeed = 1.2;
-
-    // Ball properties
-    let ballX = canvas.width / 2;
-    let ballY = canvas.height / 2;
-    let ballSpeedX = 1.5 * (Math.random() > 0.5 ? 1 : -1);
-    let ballSpeedY = 1.5 * (Math.random() > 0.5 ? 1 : -1);
-    const ballRadius = 10;
-
-    // Scores
-    let player1Score = 0;
-    let player2Score = 0;
-
-    // Controls
-    let upPressed = false;
-    let downPressed = false;
-
-    // Flash the score of the losing player
-    function flashScore(player) {
-      let flashCount = 0;
-      const flashInterval = setInterval(() => {
-        ctx.fillStyle = flashCount % 2 === 0 ? 'red' : 'white';
-        draw();
-        ctx.font = '20px ArcadeClassic, Arial, sans-serif';
-        if (player === 'Player 1') {
-          ctx.fillText('Player 1: ' + player1Score, 20, 30);
-        } else {
-          ctx.fillText('AI: ' + player2Score, canvas.width - 100, 30);
-        }
-        flashCount++;
-        if (flashCount >= 4) {
-          clearInterval(flashInterval);
-          draw();
-        }
-      }, 500);
+    function drawRect(x, y, w, h, color) {
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, w, h);
     }
 
-    // Check if all assets are loaded
-    function checkAssetsLoaded() {
-      assetsLoaded++;
-      if (assetsLoaded >= totalAssets) {
-        draw();
-        gameLoop();
-      }
+    function drawCircle(x, y, r, color) {
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2, false);
+      ctx.closePath();
+      ctx.fill();
     }
 
-    function draw() {
-      // Clear the canvas
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Draw the background
-      if (backgroundImg.complete && backgroundImg.naturalWidth !== 0) {
-        ctx.drawImage(backgroundImg, 0, 0);
-      } else {
-        ctx.fillStyle = 'black';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-      }
-
-      // Draw player 1 paddle
-      if (paddleImg.complete && paddleImg.naturalWidth !== 0) {
-        ctx.drawImage(paddleImg, 0, player1Y, paddleWidth, paddleHeight);
-      } else {
-        ctx.fillStyle = 'white';
-        ctx.fillRect(0, player1Y, paddleWidth, paddleHeight);
-      }
-
-      // Draw player 2 paddle
-      if (paddleImg.complete && paddleImg.naturalWidth !== 0) {
-        ctx.drawImage(paddleImg, canvas.width - paddleWidth, player2Y, paddleWidth, paddleHeight);
-      } else {
-        ctx.fillStyle = 'white';
-        ctx.fillRect(canvas.width - paddleWidth, player2Y, paddleWidth, paddleHeight);
-      }
-
-      // Draw the ball
-      if (ballImg.complete && ballImg.naturalWidth !== 0) {
-        ctx.drawImage(ballImg, ballX - ballRadius, ballY - ballRadius, ballRadius * 2, ballRadius * 2);
-      } else {
-        ctx.fillStyle = 'white';
-        ctx.beginPath();
-        ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // Draw scores
-      ctx.fillStyle = 'white';
-      ctx.font = '20px ArcadeClassic, Arial, sans-serif';
-      ctx.fillText('Player 1: ' + player1Score, 20, 30);
-      ctx.fillText('AI: ' + player2Score, canvas.width - 100, 30);
-    }
-
-    function update() {
-      // Move player 1 paddle
-      if (upPressed && player1Y > 0) {
-        player1Velocity = -playerSpeed;
-      } else if (downPressed && player1Y < canvas.height - paddleHeight) {
-        player1Velocity = playerSpeed;
-      } else {
-        player1Velocity = 0;
-      }
-      player1Y += player1Velocity;
-
-      // Move player 2 paddle (computer AI)
-      if (ballY < player2Y + paddleHeight / 2 - 15 && player2Y > 0) {
-        player2Y -= computerSpeed + Math.random() * 0.5;
-      } else if (ballY > player2Y + paddleHeight / 2 + 15 && player2Y < canvas.height - paddleHeight) {
-        player2Y += computerSpeed + Math.random() * 0.5;
-      }
-
-      // Move the ball
-      ballX += ballSpeedX;
-      ballY += ballSpeedY;
-
-      // Ball collision with top and bottom
-      if (ballY - ballRadius < 0 || ballY + ballRadius > canvas.height) {
-        ballSpeedY = -ballSpeedY;
-        hitSound.pause();
-        hitSound.currentTime = 0;
-        hitSound.play();
-      }
-
-      // Ball collision with paddles
-      if (
-        (ballX - ballRadius < paddleWidth && ballY > player1Y && ballY < player1Y + paddleHeight) ||
-        (ballX + ballRadius > canvas.width - paddleWidth && ballY > player2Y && ballY < player2Y + paddleHeight)
-      ) {
-        ballSpeedX = -ballSpeedX;
-        hitSound.play();
-      }
-
-      // Ball out of bounds (reset to middle and update score)
-      if (ballX < 0) {
-        player2Score++;
-        loseSound.play(); // AI scores
-        flashScore('Player 1');
-        resetBall();
-      } else if (ballX > canvas.width) {
-        player1Score++;
-        winSound.play(); // Player scores
-        flashScore('AI');
-        resetBall();
-      }
+    function drawText(text, x, y, color) {
+      ctx.fillStyle = color;
+      ctx.fillText(text, x, y);
     }
 
     function resetBall() {
-      ballX = canvas.width / 2;
-      ballY = canvas.height / 2;
-      ballSpeedX = 1.5 * (Math.random() > 0.5 ? 1 : -1);
-      ballSpeedY = 1.5 * (Math.random() > 0.5 ? 1 : -1);
+      ball.x = canvas.width / 2;
+      ball.y = canvas.height / 2;
+      ball.velocityX = -ball.velocityX;
+    }
+
+    function update() {
+      // Ball movement
+      ball.x += ball.velocityX;
+      ball.y += ball.velocityY;
+
+      // AI paddle movement
+      ai.y += (ball.y - (ai.y + ai.height / 2)) * 0.1;
+
+      // Wall collision (top and bottom)
+      if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
+        ball.velocityY = -ball.velocityY;
+        hitSound.play();
+      }
+
+      // Paddle collision
+      let playerPaddle = ball.x < canvas.width / 2 ? player : ai;
+      if (
+        ball.x - ball.radius < playerPaddle.x + playerPaddle.width &&
+        ball.y > playerPaddle.y &&
+        ball.y < playerPaddle.y + playerPaddle.height
+      ) {
+        ball.velocityX = -ball.velocityX;
+        hitSound.play();
+      }
+
+      // Score update
+      if (ball.x - ball.radius < 0) {
+        ai.score++;
+        document.getElementById('ai').textContent = `AI: ${ai.score}`;
+        document.getElementById('player1').classList.add('flash-red');
+        setTimeout(() => document.getElementById('player1').classList.remove('flash-red'), 500);
+        loseSound.play();
+        resetBall();
+      } else if (ball.x + ball.radius > canvas.width) {
+        player.score++;
+        document.getElementById('player1').textContent = `Player 1: ${player.score}`;
+        document.getElementById('ai').classList.add('flash-red');
+        setTimeout(() => document.getElementById('ai').classList.remove('flash-red'), 500);
+        winSound.play();
+        resetBall();
+      }
+    }
+
+    function render() {
+      drawRect(0, 0, canvas.width, canvas.height, 'black');
+      drawRect(player.x, player.y, player.width, player.height, player.color);
+      drawRect(ai.x, ai.y, ai.width, ai.height, ai.color);
+      drawCircle(ball.x, ball.y, ball.radius, ball.color);
     }
 
     function gameLoop() {
-      draw();
       update();
-      requestAnimationFrame(gameLoop);
+      render();
     }
 
-    // Event listeners for controls
-    let musicStarted = false;
-    document.addEventListener('keydown', (e) => {
-      if (!musicStarted && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
-        backgroundMusic.play().catch((error) => {
-          console.warn('Autoplay blocked: ', error);
-        });
-        musicStarted = true;
-      }
-      if (e.key === 'ArrowUp') upPressed = true;
-      if (e.key === 'ArrowDown') downPressed = true;
-    });
+    setInterval(gameLoop, 1000 / 60);
 
-    document.addEventListener('keyup', (e) => {
-      if (e.key === 'ArrowUp') upPressed = false;
-      if (e.key === 'ArrowDown') downPressed = false;
+    // Player control
+    window.addEventListener('keydown', (e) => {
+      switch (e.key) {
+        case 'ArrowUp':
+          player.y -= 20;
+          break;
+        case 'ArrowDown':
+          player.y += 20;
+          break;
+      }
     });
   </script>
 </body>
