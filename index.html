@@ -77,13 +77,13 @@
 
     let player1Y = canvas.height / 2 - paddleHeight / 2;
     let player2Y = canvas.height / 2 - paddleHeight / 2;
-    let computerSpeed = 2.5;
+    let computerSpeed = 1.5;
 
     // Ball properties
     let ballX = canvas.width / 2;
     let ballY = canvas.height / 2;
     let ballSpeedX = 1;
-    let ballSpeedY = 1 * (Math.random() > 0.5 ? 1 : -1);
+    let ballSpeedY = 1.5 * (Math.random() > 0.5 ? 1 : -1);
     const ballRadius = 10;
 
     // Scores
@@ -190,14 +190,13 @@
 
       // Ball collision with top and bottom
       if (ballY - ballRadius < 0 || ballY + ballRadius > canvas.height) {
-        ballSpeedY = 1 * (Math.random() > 0.5 ? 1 : -1);
+        ballSpeedY = 1.5 * (Math.random() > 0.5 ? 1 : -1);
         hitSound.pause(); hitSound.currentTime = 0; hitSound.play();
       }
 
       // Ball collision with paddles
       if (
-        (ballX - ballRadius < paddleWidth && ballY > player1Y && ballY < player1Y + paddleHeight) ||
-        (ballX + ballRadius > canvas.width - paddleWidth && ballY > player2Y && ballY < player2Y + paddleHeight)
+        (ballX - ballRadius < paddleWidth && ballY > player1Y && ballY < player1Y + paddleHeight) || (ballX + ballRadius > canvas.width - paddleWidth && ballY > player2Y && ballY < player2Y + paddleHeight && Math.abs(ballSpeedX) < 2)
       ) {
         ballSpeedX = 1;
         hitSound.play();
@@ -220,7 +219,7 @@
     function resetBall() {
       ballX = canvas.width / 2;
       ballY = canvas.height / 2;
-      ballSpeedX = 1 * (Math.random() > 0.5 ? 1 : -1);
+      ballSpeedX = 1.5 * (Math.random() > 0.5 ? 1 : -1);
     }
 
     function gameLoop() {
