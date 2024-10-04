@@ -13,7 +13,6 @@
       display: block;
       margin: 0 auto;
       border: 10px solid #00f; /* Thick neon blue border */
-      border-color: #00f; /* Neon blue border */
     }
     body {
       text-align: center;
@@ -35,22 +34,21 @@
     const paddleHeight = 100;
     const playerSpeed = 5;
     let player1Velocity = 0;
-    const friction = 0.9; // Friction for easing paddle to a stop
 
     // Images
     const paddleImg = new Image();
     paddleImg.src = 'https://actiontoonsanimation.github.io/Pong/paddle.png';
-    paddleImg.onload = () => draw();
+    paddleImg.onload = () => checkAssetsLoaded();
     paddleImg.onerror = () => console.error('Paddle image failed to load');
 
     const ballImg = new Image();
     ballImg.src = 'https://actiontoonsanimation.github.io/Pong/ball.png';
-    ballImg.onload = () => draw();
+    ballImg.onload = () => checkAssetsLoaded();
     ballImg.onerror = () => console.error('Ball image failed to load');
 
     const backgroundImg = new Image();
     backgroundImg.src = 'https://actiontoonsanimation.github.io/Pong/background.png';
-    backgroundImg.onload = () => draw();
+    backgroundImg.onload = () => checkAssetsLoaded();
     backgroundImg.onerror = () => console.error('Background image failed to load');
 
     // Sound effects
@@ -73,7 +71,7 @@
     backgroundMusic.onerror = () => console.error('Background music failed to load');
 
     let assetsLoaded = 0;
-    const totalAssets = 6; // Number of image and audio assets
+    const totalAssets = 7; // Number of image and audio assets
 
     let player1Y = canvas.height / 2 - paddleHeight / 2;
     let player2Y = canvas.height / 2 - paddleHeight / 2;
@@ -107,11 +105,11 @@
           ctx.fillText('AI: ' + player2Score, canvas.width - 100, 30);
         }
         flashCount++;
-        if (flashCount >= 2) {
+        if (flashCount >= 4) {
           clearInterval(flashInterval);
           draw();
-        }, 500);
-    }
+        }
+      }, 500);
     }
 
     // Check if all assets are loaded
@@ -119,7 +117,6 @@
       assetsLoaded++;
       if (assetsLoaded >= totalAssets) {
         draw();
-        gameLoop();
         gameLoop();
       }
     }
@@ -134,8 +131,6 @@
       } else {
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-      }
-      }
       }
 
       // Draw player 1 paddle
@@ -168,9 +163,7 @@
       ctx.fillStyle = 'white';
       ctx.font = '20px ArcadeClassic, Arial, sans-serif';
       ctx.fillText('Player 1: ' + player1Score, 20, 30);
-      
       ctx.fillText('AI: ' + player2Score, canvas.width - 100, 30);
-      
     }
 
     function update() {
@@ -198,12 +191,15 @@
       // Ball collision with top and bottom
       if (ballY - ballRadius < 0 || ballY + ballRadius > canvas.height) {
         ballSpeedY = -ballSpeedY;
-        hitSound.pause(); hitSound.currentTime = 0; hitSound.play();
+        hitSound.pause();
+        hitSound.currentTime = 0;
+        hitSound.play();
       }
 
       // Ball collision with paddles
       if (
-        (ballX - ballRadius < paddleWidth && ballY > player1Y && ballY < player1Y + paddleHeight) || (ballX + ballRadius > canvas.width - paddleWidth && ballY > player2Y && ballY < player2Y + paddleHeight && Math.abs(ballSpeedX) < 2)
+        (ballX - ballRadius < paddleWidth && ballY > player1Y && ballY < player1Y + paddleHeight) ||
+        (ballX + ballRadius > canvas.width - paddleWidth && ballY > player2Y && ballY < player2Y + paddleHeight)
       ) {
         ballSpeedX = -ballSpeedX;
         hitSound.play();
@@ -227,6 +223,7 @@
       ballX = canvas.width / 2;
       ballY = canvas.height / 2;
       ballSpeedX = 1.5 * (Math.random() > 0.5 ? 1 : -1);
+      ballSpeedY = 1.5 * (Math.random() > 0.5 ? 1 : -1);
     }
 
     function gameLoop() {
