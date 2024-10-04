@@ -77,12 +77,12 @@
 
     let player1Y = canvas.height / 2 - paddleHeight / 2;
     let player2Y = canvas.height / 2 - paddleHeight / 2;
-    let computerSpeed = 1.5;
+    let computerSpeed = 1.2;
 
     // Ball properties
     let ballX = canvas.width / 2;
     let ballY = canvas.height / 2;
-    let ballSpeedX = 1;
+    let ballSpeedX = 1.5 * (Math.random() > 0.5 ? 1 : -1);
     let ballSpeedY = 1.5 * (Math.random() > 0.5 ? 1 : -1);
     const ballRadius = 10;
 
@@ -97,14 +97,20 @@
     // Flash the score of the losing player
     function flashScore(player) {
       let flashCount = 0;
-      const playerElement = player === 'Player 1' ? document.querySelector('#player1Score') : document.querySelector('#player2Score');
       const flashInterval = setInterval(() => {
-        playerElement.style.color = flashCount % 2 === 0 ? 'red' : 'white';
+        ctx.fillStyle = flashCount % 2 === 0 ? 'red' : 'white';
+        if (player === 'Player 1') {
+          ctx.fillText('Player 1: ' + player1Score, 20, 30);
+        } else {
+          ctx.fillText('AI: ' + player2Score, canvas.width - 100, 30);
+        }
         flashCount++;
         if (flashCount >= 2) {
           clearInterval(flashInterval);
-          playerElement.style.color = 'white';
+          draw();
         }
+      }, 500);
+    }
       }, 500);
     }
       }, 500);
@@ -178,10 +184,10 @@
       player1Y += player1Velocity;
 
       // Move player 2 paddle (computer AI)
-      if (ballY < player2Y + paddleHeight / 2 && player2Y > 0) {
-        player2Y -= computerSpeed;
-      } else if (ballY > player2Y + paddleHeight / 2 && player2Y < canvas.height - paddleHeight) {
-        player2Y += computerSpeed;
+      if (ballY < player2Y + paddleHeight / 2 - 15 && player2Y > 0) {
+        player2Y -= computerSpeed + Math.random() * 0.5;
+      } else if (ballY > player2Y + paddleHeight / 2 + 15 && player2Y < canvas.height - paddleHeight) {
+        player2Y += computerSpeed + Math.random() * 0.5;
       }
 
       // Move the ball
@@ -198,7 +204,7 @@
       if (
         (ballX - ballRadius < paddleWidth && ballY > player1Y && ballY < player1Y + paddleHeight) || (ballX + ballRadius > canvas.width - paddleWidth && ballY > player2Y && ballY < player2Y + paddleHeight && Math.abs(ballSpeedX) < 2)
       ) {
-        ballSpeedX = 1;
+        ballSpeedX = -1.5 * Math.sign(ballSpeedX);
         hitSound.play();
       }
 
@@ -229,9 +235,13 @@
     }
 
     // Event listeners for controls
+    let musicStarted = false;
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-        backgroundMusic.play().catch((error) => { console.warn('Autoplay blocked: ', error); });
+      if (!musicStarted && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+        backgroundMusic.play().catch((error) => {
+          console.warn('Autoplay blocked: ', error);
+        });
+        musicStarted = true;
       }
       if (e.key === 'ArrowUp') upPressed = true;
       if (e.key === 'ArrowDown') downPressed = true;
