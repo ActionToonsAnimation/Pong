@@ -185,7 +185,7 @@
 
       // Ball collision with top and bottom
       if (ballY - ballRadius < 0 || ballY + ballRadius > canvas.height) {
-        ballSpeedY = -ballSpeedY;
+        ballSpeedY = Math.sign(ballSpeedY) * 2.5;
         hitSound.pause(); hitSound.currentTime = 0; hitSound.play();
       }
 
@@ -194,7 +194,7 @@
         (ballX - ballRadius < paddleWidth && ballY > player1Y && ballY < player1Y + paddleHeight) ||
         (ballX + ballRadius > canvas.width - paddleWidth && ballY > player2Y && ballY < player2Y + paddleHeight)
       ) {
-        ballSpeedX = -ballSpeedX;
+        ballSpeedX = Math.sign(ballSpeedX) * 2.5;
         hitSound.play();
       }
 
