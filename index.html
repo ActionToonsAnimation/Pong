@@ -190,12 +190,11 @@
       // Ball out of bounds (reset to middle and update score)
       if (ballX < 0) {
         player2Score++;
-        flashLoser('AI');
+        winSound.play(); // AI wins
         resetBall();
       } else if (ballX > canvas.width) {
         player1Score++;
-        winSound.play();
-        flashLoser('Player 1');
+        loseSound.play(); // Player loses
         resetBall();
       }
     }
@@ -204,29 +203,6 @@
       ballX = canvas.width / 2;
       ballY = canvas.height / 2;
       ballSpeedX = -ballSpeedX;
-    }
-
-    function flashLoser(player) {
-      if (player === 'Player 1') {
-        loseSound.play();
-        winSound.pause();
-        winSound.currentTime = 0;
-      }
-      let flashCount = 0;
-      const flashInterval = setInterval(() => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = flashCount % 2 === 0 ? 'red' : 'white';
-        ctx.font = '20px ArcadeClassic, Arial, sans-serif';
-        if (player === 'Player 1') {
-          ctx.fillText('Player 1: ' + player1Score, 20, 30);
-        } else {
-          ctx.fillText('AI: ' + player2Score, canvas.width - 100, 30);
-        }
-        flashCount++;
-        if (flashCount > 5) {
-          clearInterval(flashInterval);
-        }
-      }, 200);
     }
 
     function gameLoop() {
