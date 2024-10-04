@@ -6,8 +6,6 @@
   <title>Simple Pong Game</title>
   <style>
     canvas {
-      background: url('https://actiontoonsanimation.github.io/Pong/background.png') no-repeat center center;
-      background-size: cover;
       display: block;
       margin: 0 auto;
     }
@@ -31,6 +29,8 @@
     const playerSpeed = 8;
 
     // Images
+    const backgroundImg = new Image();
+    backgroundImg.src = 'https://actiontoonsanimation.github.io/Pong/background.png';
     const paddleImg = new Image();
     paddleImg.src = 'https://actiontoonsanimation.github.io/Pong/paddle.png';
     const ballImg = new Image();
@@ -56,6 +56,9 @@
     function draw() {
       // Clear the canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw the background
+      ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
       ctx.fillStyle = 'black';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
