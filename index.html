@@ -33,7 +33,7 @@
     // Paddle properties
     const paddleWidth = 10;
     const paddleHeight = 100;
-    const playerSpeed = 8;
+    const playerSpeed = 12; // Increased from 8 to speed up game overall
 
     // Images
     const paddleImg = new Image();
@@ -77,13 +77,13 @@
 
     let player1Y = canvas.height / 2 - paddleHeight / 2;
     let player2Y = canvas.height / 2 - paddleHeight / 2;
-    let computerSpeed = 2.5;
+    let computerSpeed = 3.75; // Increased from 2.5 to speed up game overall
 
     // Ball properties
     let ballX = canvas.width / 2;
     let ballY = canvas.height / 2;
-    let ballSpeedX = 4;
-    let ballSpeedY = 4;
+    let ballSpeedX = 6; // Increased from 4 to speed up game overall
+    let ballSpeedY = 6; // Increased from 4 to speed up game overall
     const ballRadius = 10;
 
     // Scores
@@ -190,12 +190,13 @@
       // Ball out of bounds (reset to middle and update score)
       if (ballX < 0) {
         player2Score++;
+        loseSound.play();
         flashLoser('AI');
         resetBall();
       } else if (ballX > canvas.width) {
         player1Score++;
         winSound.play();
-        flashLoser('Player 1');
+        flashLoser('AI', true);
         resetBall();
       }
     }
@@ -206,24 +207,18 @@
       ballSpeedX = -ballSpeedX;
     }
 
-    function flashLoser(player) {
-      if (player === 'Player 1') {
-        loseSound.play();
-        winSound.pause();
-        winSound.currentTime = 0;
-      }
+    function flashLoser(player, playerWin = false) {
       let flashCount = 0;
       const flashInterval = setInterval(() => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = flashCount % 2 === 0 ? 'red' : 'white';
-        ctx.font = '20px ArcadeClassic, Arial, sans-serif';
-        if (player === 'Player 1') {
-          ctx.fillText('Player 1: ' + player1Score, 20, 30);
-        } else {
+        draw();
+        if (player === 'AI' && playerWin) {
+          ctx.fillStyle = flashCount % 2 === 0 ? 'red' : 'white';
+          ctx.font = '20px ArcadeClassic, Arial, sans-serif';
           ctx.fillText('AI: ' + player2Score, canvas.width - 100, 30);
         }
         flashCount++;
-        if (flashCount > 5) {
+        if (flashCount > 10) {
           clearInterval(flashInterval);
         }
       }, 200);
