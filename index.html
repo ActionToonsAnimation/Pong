@@ -190,12 +190,12 @@
       // Ball out of bounds (reset to middle and update score)
       if (ballX < 0) {
         player2Score++;
-        loseSound.play();
+        loseSound.currentTime = 0; loseSound.play();
         flashLoser('AI');
         resetBall();
       } else if (ballX > canvas.width) {
         player1Score++;
-        winSound.play();
+        winSound.currentTime = 0; winSound.play();
         flashLoser('AI', true);
         resetBall();
       }
